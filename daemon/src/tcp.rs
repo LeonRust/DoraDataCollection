@@ -1,4 +1,10 @@
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{
+        atomic::{AtomicI64, Ordering},
+        Arc,
+    },
+    time::Duration,
+};
 
 use chrono::Local;
 use common::state::TcpState;
@@ -12,32 +18,48 @@ pub async fn run(
     let listener = TcpListener::bind(&addr).await?;
     eprintln!("Server has started, listen on {}", addr);
 
+    let global_atom_timestamp = Arc::new(AtomicI64::default());
+
+    let global_atom_timestamp_clone = global_atom_timestamp.clone();
+    tokio::spawn(async move {
+        loop {
+            global_atom_timestamp_clone.store(Local::now().timestamp_millis(), Ordering::Release);
+            sleep(Duration::from_millis(clock_interval)).await;
+        }
+    });
+
     loop {
         let (mut socket, _) = listener.accept().await?;
 
         let tcp_state_clone = tcp_state.clone();
+        let global_atom_timestamp_clone = global_atom_timestamp.clone();
         tokio::spawn(async move {
+            let mut timestamp = Local::now().timestamp_millis();
             loop {
                 // eprintln!("{:?}", socket);
-                let timestamp = Local::now().timestamp_millis();
-                sleep(Duration::from_millis(clock_interval)).await;
+                let golbal_timestamp = global_atom_timestamp_clone.load(Ordering::Relaxed);
 
-                let state = tcp_state_clone.lock().await;
+                if timestamp != golbal_timestamp {
+                    timestamp = golbal_timestamp;
 
-                if let Err(e) = socket
-                    .write_all(
-                        &serde_json::to_vec(&TcpState {
-                            biz_type: state.biz_type,
-                            timestamp,
-                            path: state.path.clone(),
-                        })
-                        .unwrap(),
-                    )
-                    .await
-                {
-                    eprintln!("Error writing to socket: {}", e);
-                    break;
+                    let state = tcp_state_clone.lock().await;
+
+                    if let Err(e) = socket
+                        .write_all(
+                            &serde_json::to_vec(&TcpState {
+                                biz_type: state.biz_type,
+                                timestamp,
+                                path: state.path.clone(),
+                            })
+                            .unwrap(),
+                        )
+                        .await
+                    {
+                        eprintln!("Error writing to socket: {}", e);
+                        break;
+                    }
                 }
+                sleep(Duration::from_millis(10)).await;
             }
         });
     }

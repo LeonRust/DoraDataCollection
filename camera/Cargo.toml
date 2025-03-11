@@ -9,3 +9,4 @@ dotenvy = { workspace = true }
 tokio = { workspace = true }
 common = { path = "../common" }
 serde_json = { workspace = true }
+opencv = "0.94.2"
