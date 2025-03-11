@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use common::state::{BizType, TcpState};
 use device_query::{DeviceQuery, DeviceState, Keycode};
@@ -6,7 +6,11 @@ use tokio::sync::Mutex;
 
 use crate::db::DbState;
 
-pub async fn run(tcp_state: Arc<Mutex<TcpState>>, db_state: Arc<DbState>) -> anyhow::Result<()> {
+pub async fn run(
+    tcp_state: Arc<Mutex<TcpState>>,
+    db_state: Arc<DbState>,
+    datasets_path: String,
+) -> anyhow::Result<()> {
     let device_state = DeviceState::new();
 
     let mut prev_keys = vec![];
@@ -16,37 +20,81 @@ pub async fn run(tcp_state: Arc<Mutex<TcpState>>, db_state: Arc<DbState>) -> any
 
         if keys != prev_keys {
             if let Some(key) = keys.first() {
-                let mut state = tcp_state.lock().await;
+                let mut mut_tcp_state = tcp_state.lock().await;
+
                 match key {
                     Keycode::Key1 | Keycode::Numpad1 => {
-                        eprintln!("Start");
-                        match state.biz_type {
+                        eprintln!("Start/Success pressed");
+                        match mut_tcp_state.biz_type {
                             BizType::None => {
+                                db_state
+                                    .episode_id
+                                    .fetch_add(1, std::sync::atomic::Ordering::Release);
+
                                 // TODO add new spisode to db
 
-                                state.biz_type = BizType::Start;
+                                mut_tcp_state.biz_type = BizType::Start;
                             }
                             BizType::Start => {}
                             BizType::Stop => {
                                 // TODO Save to db, success
 
-                                state.biz_type = BizType::None;
+                                eprintln!("Episode Sucess");
+
+                                mut_tcp_state.biz_type = BizType::None;
                             }
                         }
                     }
                     Keycode::Key0 | Keycode::Numpad0 => {
-                        eprintln!("Stop");
-                        match state.biz_type {
+                        eprintln!("Stop/Fail pressed");
+                        match mut_tcp_state.biz_type {
                             BizType::None => {}
-                            BizType::Start => state.biz_type = BizType::Stop,
+                            BizType::Start => mut_tcp_state.biz_type = BizType::Stop,
                             BizType::Stop => {
                                 // TODO Save to db, fail
 
-                                state.biz_type = BizType::None;
+                                eprintln!("Episode Fail");
+
+                                mut_tcp_state.biz_type = BizType::None;
                             }
                         }
                     }
+                    Keycode::I => {
+                        eprintln!("Init");
+                        db_state
+                            .robot_id
+                            .store(1, std::sync::atomic::Ordering::Release);
+                        db_state
+                            .scene_id
+                            .store(1, std::sync::atomic::Ordering::Release);
+                        db_state
+                            .task_id
+                            .store(1, std::sync::atomic::Ordering::Release);
+                        db_state
+                            .episode_id
+                            .store(0, std::sync::atomic::Ordering::Release);
+                    }
                     _ => {}
+                }
+
+                // path
+                let episode_id = db_state
+                    .episode_id
+                    .load(std::sync::atomic::Ordering::Relaxed);
+                if episode_id > 0 {
+                    let path = format!(
+                        "{datasets_path}/robot-{}/scene-{}/task-{}/episode-{}",
+                        db_state.robot_id.load(std::sync::atomic::Ordering::Relaxed),
+                        db_state.scene_id.load(std::sync::atomic::Ordering::Relaxed),
+                        db_state.task_id.load(std::sync::atomic::Ordering::Relaxed),
+                        db_state
+                            .episode_id
+                            .load(std::sync::atomic::Ordering::Relaxed)
+                    );
+                    if !PathBuf::from(&path).exists() {
+                        tokio::fs::create_dir_all(&path).await?;
+                    }
+                    mut_tcp_state.path = path;
                 }
             }
         }

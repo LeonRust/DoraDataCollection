@@ -1,5 +1,5 @@
 use std::{
-    env,
+    env, fs,
     sync::{
         atomic::{AtomicI64, AtomicU32},
         Arc,
@@ -21,6 +21,10 @@ mod tcp;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
+
+    // databases collect save path
+    let datasets_path = env::var(config::DATASET_PATH).unwrap_or("datasets".to_string());
+    fs::create_dir_all(&datasets_path).expect("datasets floder created fail");
 
     // Daemon server info
     let daemon_ip = env::var(config::DAEMON_IP).unwrap_or("127.0.0.1".to_string());
@@ -64,7 +68,7 @@ async fn main() -> anyhow::Result<()> {
     let http_handel = tokio::spawn(http::run(http_addr, db_state.clone()));
 
     // Keyboard
-    let keyboard_handel = tokio::spawn(keyboard::run(tcp_state, db_state));
+    let keyboard_handel = tokio::spawn(keyboard::run(tcp_state, db_state, datasets_path));
 
     tokio::select! {
         _ = tcp_handel => {

@@ -7,9 +7,15 @@ pub struct TcpState {
     pub path: String,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum BizType {
     None,
     Start,
     Stop,
+}
+
+// 路径同步
+pub enum PathSync {
+    None,
+    Path(String),
 }

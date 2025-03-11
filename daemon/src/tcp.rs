@@ -15,14 +15,14 @@ pub async fn run(
     loop {
         let (mut socket, _) = listener.accept().await?;
 
-        let tcp_state = tcp_state.clone();
+        let tcp_state_clone = tcp_state.clone();
         tokio::spawn(async move {
             loop {
                 // eprintln!("{:?}", socket);
                 let timestamp = Local::now().timestamp_millis();
                 sleep(Duration::from_millis(clock_interval)).await;
 
-                let state = tcp_state.lock().await;
+                let state = tcp_state_clone.lock().await;
 
                 if let Err(e) = socket
                     .write_all(
