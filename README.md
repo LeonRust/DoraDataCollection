@@ -7,5 +7,9 @@
 
 ## 快速开始
 
+### Ubuntu
 
+```bash
+sudo apt install libx11-dev curl
+```
 

@@ -1,7 +1,7 @@
 // Daemon Server
 pub const DAEMON_IP: &str = "DAEMON_IP"; // Daemon Server IP
-pub const DEAMON_TCP_PORT: &str = "DEAMON_TCP_PORT"; // Daemon Server TCP Port
-pub const DEAMON_HTTP_PORT: &str = "DEAMON_HTTP_PORT"; // Daemon Server HTTP Port
+pub const DAEMON_TCP_PORT: &str = "DAEMON_TCP_PORT"; // Daemon Server TCP Port
+pub const DAEMON_HTTP_PORT: &str = "DAEMON_HTTP_PORT"; // Daemon Server HTTP Port
 
 pub const DATASET_PATH: &str = "DATASET_PATH"; // 数据集路径
 
