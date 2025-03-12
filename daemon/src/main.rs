@@ -1,7 +1,7 @@
 use std::{
     env, fs,
     sync::{
-        atomic::{AtomicI64, AtomicU32},
+        atomic::{AtomicBool, AtomicI64, AtomicU32},
         Arc,
     },
 };
@@ -13,10 +13,16 @@ use common::{
 use db::DbState;
 use tokio::sync::Mutex;
 
+mod api;
+mod asset;
 mod db;
+mod error;
 mod http;
 mod keyboard;
+mod model;
 mod tcp;
+
+pub use error::Result;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -52,6 +58,7 @@ async fn main() -> anyhow::Result<()> {
         scene_id: AtomicU32::default(),
         task_id: AtomicU32::default(),
         episode_id: AtomicU32::default(),
+        show_result: AtomicBool::default(),
     });
     let tcp_state = Arc::new(Mutex::new(TcpState {
         biz_type: BizType::None,
@@ -65,7 +72,12 @@ async fn main() -> anyhow::Result<()> {
 
     // HTTP
     let http_addr = format!("{}:{}", daemon_ip, daemon_http_port);
-    let http_handel = tokio::spawn(http::run(http_addr, db_state.clone()));
+    let http_handel = tokio::spawn(http::run(
+        http_addr,
+        db_state.clone(),
+        tcp_state.clone(),
+        datasets_path.clone(),
+    ));
 
     // Keyboard
     let keyboard_handel = tokio::spawn(keyboard::run(tcp_state, db_state, datasets_path));
