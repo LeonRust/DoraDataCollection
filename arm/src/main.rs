@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Daemon server info
     let daemon_ip = env::var(config::DAEMON_IP).unwrap_or("127.0.0.1".to_string());
-    let daemon_tcp_port = env::var(config::DEAMON_TCP_PORT)
+    let daemon_tcp_port = env::var(config::DAEMON_TCP_PORT)
         .map(|v| v.parse().unwrap_or(1234))
         .unwrap_or(1234_u16);
 
