@@ -34,13 +34,13 @@ async fn main() -> anyhow::Result<()> {
     fs::create_dir_all(&datasets_path).expect("datasets floder created fail");
 
     // Daemon server info
-    let daemon_ip = env::var(config::DAEMON_IP).unwrap_or("127.0.0.1".to_string());
+    // let daemon_ip = env::var(config::DAEMON_IP).unwrap_or("127.0.0.1".to_string());
     let daemon_tcp_port = env::var(config::DAEMON_TCP_PORT)
         .map(|v| v.parse().unwrap_or(1234))
         .unwrap_or(1234_u16);
     let daemon_http_port = env::var(config::DAEMON_HTTP_PORT)
-        .map(|v| v.parse().unwrap_or(80))
-        .unwrap_or(80_u16);
+        .map(|v| v.parse().unwrap_or(7878))
+        .unwrap_or(7878_u16);
 
     // clock interval
     let clock_interval = env::var(config::CLOCK_INTERVAL)
@@ -84,7 +84,7 @@ async fn main() -> anyhow::Result<()> {
     let tcp_handel = tokio::spawn(tcp::run(tcp_addr, clock_interval, tcp_state.clone()));
 
     // HTTP
-    let http_addr = format!("{}:{}", daemon_ip, daemon_http_port);
+    let http_addr = format!(":::{}", daemon_http_port);
     let http_handel = tokio::spawn(http::run(
         http_addr,
         db_state.clone(),

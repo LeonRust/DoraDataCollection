@@ -1,7 +1,4 @@
-use std::sync::atomic::AtomicBool;
-
 use serde::{Deserialize, Serialize};
-use tokio::sync::Mutex;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TcpState {
