@@ -1,6 +1,7 @@
 use axum::Router;
 use serde::Serialize;
 
+pub mod docker;
 pub mod episode;
 pub mod login;
 pub mod robot;
@@ -16,6 +17,7 @@ pub fn router() -> Router {
         .nest("/task", task::router())
         .nest("/episode", episode::router())
         .nest("/usb", usb::router())
+        .nest("/docker", docker::router())
 }
 
 #[derive(Debug, Serialize)]
