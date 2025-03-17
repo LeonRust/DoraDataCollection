@@ -31,8 +31,17 @@ async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
 
     // databases collect save path
-    let datasets_path = env::var(config::DATASET_PATH).unwrap_or("datasets".to_string());
-    fs::create_dir_all(&datasets_path).expect("datasets floder created fail");
+    let datasets_path = env::var(config::DATASET_PATH).expect("datasets floder created fail");
+    if !std::path::Path::new(&datasets_path).exists() {
+        panic!("datasets path not exists");
+    }
+    // fs::create_dir_all(&datasets_path).expect("datasets floder created fail");
+
+    let cache_path = env::var(config::CACHE_PATH).expect("datasets floder created fail");
+    if !std::path::Path::new(&cache_path).exists() {
+        panic!("cache path not exists");
+    }
+    // fs::create_dir_all(&datasets_path).expect("datasets floder created fail");
 
     // Daemon server info
     // let daemon_ip = env::var(config::DAEMON_IP).unwrap_or("127.0.0.1".to_string());
@@ -55,6 +64,8 @@ async fn main() -> anyhow::Result<()> {
     // global data
     let db_state = Arc::new(DbState {
         database,
+        cache_path,
+        datasets_path: datasets_path.clone(),
         data_id: AtomicI64::default(),
         robot_id: AtomicU32::default(),
         scene_id: AtomicU32::default(),

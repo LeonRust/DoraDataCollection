@@ -17,9 +17,9 @@ pub fn router() -> Router {
     Router::new().route("/run", post(run))
 }
 
-async fn run(Extension(app_state): Extension<Arc<DbState>>) -> Result<impl IntoResponse> {
-    let settings = Setting::list(&app_state.database).await;
-    if settings.is_empty() || settings.len() < 5 {
+async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoResponse> {
+    let settings = Setting::list(&db_state.database).await;
+    if settings.is_empty() {
         return Err(Error::App(AppError::RUN_SYSTEM_FAIL));
     }
 
@@ -124,7 +124,7 @@ async fn run(Extension(app_state): Extension<Arc<DbState>>) -> Result<impl IntoR
             "-e",
             "DLL_PATH=lerobot/common/robot_devices/robots/libs",
             "-v",
-            "~/Desktop/DoraDataCollect/cache:/lerobot-gen72/.cache",
+            format!("{}:/lerobot-gen72/.cache", db_state.cache_path).as_str(),
             "lerobot-gen72",
         ])
         .output()

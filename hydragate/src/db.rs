@@ -7,7 +7,9 @@ use sqlx::{Sqlite, SqlitePool, migrate::MigrateDatabase, sqlite::SqlitePoolOptio
 
 #[derive(Debug)]
 pub struct DbState {
-    pub database: SqlitePool,    // db pool
+    pub database: SqlitePool, // db pool
+    pub cache_path: String,
+    pub datasets_path: String,
     pub data_id: AtomicI64,      // the last data id, current
     pub robot_id: AtomicU32,     // robot id
     pub scene_id: AtomicU32,     // scene id
@@ -68,6 +70,15 @@ pub async fn db_connect() -> anyhow::Result<SqlitePool> {
                 "created_at"    INTEGER NOT NULL,
                 PRIMARY KEY("id" AUTOINCREMENT)
             );
+            CREATE TABLE IF NOT EXISTS "setting" (
+                "id"          INTEGER NOT NULL UNIQUE,
+                "device_type"    INTEGER NOT NULL,
+                "device_place"    INTEGER NOT NULL,
+                "device_name"     TEXT NOT NULL,
+                "device_serial"     TEXT NOT NULL,
+                "created_at"  INTEGER NOT NULL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+            );
             CREATE TABLE IF NOT EXISTS "episode" (
                 "id"          INTEGER NOT NULL UNIQUE,
                 "robot_id"    INTEGER NOT NULL,
@@ -84,15 +95,6 @@ pub async fn db_connect() -> anyhow::Result<SqlitePool> {
                 "scene_id"  ASC,
                 "task_id"   ASC,
                 "episode_id"    ASC
-            );
-            CREATE TABLE IF NOT EXISTS "setting" (
-                "id"          INTEGER NOT NULL UNIQUE,
-                "device_type"    INTEGER NOT NULL,
-                "device_place"    INTEGER NOT NULL,
-                "device_name"     TEXT NOT NULL,
-                "device_serial"     TEXT NOT NULL,
-                "created_at"  INTEGER NOT NULL,
-                PRIMARY KEY("id" AUTOINCREMENT)
             );
             "#,
         )

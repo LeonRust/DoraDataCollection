@@ -4,6 +4,7 @@ pub const DAEMON_TCP_PORT: &str = "DAEMON_TCP_PORT"; // Daemon Server TCP Port
 pub const DAEMON_HTTP_PORT: &str = "DAEMON_HTTP_PORT"; // Daemon Server HTTP Port
 
 pub const DATASET_PATH: &str = "DATASET_PATH"; // 数据集路径
+pub const CACHE_PATH: &str = "CACHE_PATH"; // 缓存路径
 
 // The clock interval, default 100ms
 pub const CLOCK_INTERVAL: &str = "CLOCK_INTERVAL"; // 时钟间隔，单位毫秒
