@@ -1,6 +1,9 @@
 <template>
   <div>
     <n-spin :show="showSpin">
+      <template #description>
+        正在加载中...
+      </template>
       <div class="n-layout-page-header">
         <n-card :bordered="false" title="工作台">
           <n-grid cols="2 s:1 m:1 l:2 xl:2 2xl:2" responsive="screen">
@@ -43,7 +46,7 @@
                   </n-button>
                 </template>
               </n-space>
-              <n-space>
+              <n-space v-if="isDockerRun">
                 <n-button v-if="!hasCollectTask" type="info" secondary @click="settingTask">
                   设置采集任务
                 </n-button>

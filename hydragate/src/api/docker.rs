@@ -191,19 +191,19 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
 }
 
 async fn stop() -> impl IntoResponse {
-    // tokio::spawn(async move {
-    Command::new("sudo")
-        .args([
-            "docker",
-            "stop",
-            "lerobot-gen72",
-            "camera-head",
-            "camera-left",
-            "camera-right",
-        ])
-        .output()
-        .ok();
-    // });
+    tokio::spawn(async move {
+        Command::new("sudo")
+            .args([
+                "docker",
+                "stop",
+                "lerobot-gen72",
+                "camera-head",
+                "camera-left",
+                "camera-right",
+            ])
+            .output()
+            .ok();
+    });
 
     Json(ApiResult::OK)
 }
