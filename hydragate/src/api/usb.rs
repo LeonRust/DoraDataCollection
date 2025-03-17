@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{collections::BTreeMap, sync::Arc, time::Duration};
 
 use axum::{
     Extension, Json, Router,
@@ -59,6 +59,7 @@ async fn stop(
 ) -> impl IntoResponse {
     let mut usb_state = usb_state.lock().await;
     usb_state.usb_type = None;
+    usb_state.usb_devices.clear();
 
     Json(())
 }

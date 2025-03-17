@@ -1,4 +1,5 @@
 use std::{
+    collections::BTreeMap,
     env, fs,
     sync::{
         Arc,
@@ -68,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
     }));
     let usb_state = Arc::new(Mutex::new(UsbState {
         usb_type: None,
-        serials: vec![],
+        usb_devices: BTreeMap::new(),
         u2d2_left: None,
         u2d2_right: None,
         orbbec_head: None,
@@ -104,9 +105,9 @@ async fn main() -> anyhow::Result<()> {
             if let Some(usb_type) = usb_state.usb_type {
                 let serials = util::find_usb_driver(usb_type);
                 let usb_devices = util::find_usb_number(usb_type, &serials);
-                println!("usb_devices: {:?}", usb_devices);
-                usb_state.serials = serials;
+                usb_state.usb_devices = usb_devices;
             }
+            println!("usb_devices: {:?}", usb_state.usb_devices);
             tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
         }
     });

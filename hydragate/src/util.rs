@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{BTreeMap, HashMap},
     process::{Command, Stdio},
 };
 
@@ -26,8 +26,8 @@ pub fn find_usb_driver(usb_type: UsbType) -> Vec<String> {
         .unwrap_or_default()
 }
 
-pub fn find_usb_number(usb_type: UsbType, usb_serials: &[String]) -> HashMap<String, String> {
-    let mut serials = HashMap::new();
+pub fn find_usb_number(usb_type: UsbType, usb_serials: &[String]) -> BTreeMap<String, String> {
+    let mut serials = BTreeMap::new();
 
     for usb in usb_serials.iter() {
         if let Ok(output) = Command::new("udevadm")
