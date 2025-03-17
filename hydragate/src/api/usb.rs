@@ -90,6 +90,7 @@ async fn setting(
                     let mut usb_state = usb_state_clone2.lock().await;
                     usb_state.setting = false;
                     usb_state.serials = vec![];
+                    break;
                 }
             }
         }
