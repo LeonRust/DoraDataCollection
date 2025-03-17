@@ -216,6 +216,7 @@ const transform: AxiosTransform = {
         return;
       }
       if (err && err.includes('Network Error')) {
+        $dialog.destroyAll();
         $dialog.info({
           title: '网络异常',
           content: '请检查您的网络连接是否正常',
