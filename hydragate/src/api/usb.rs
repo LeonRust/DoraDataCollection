@@ -13,11 +13,15 @@ use crate::{
     Result,
     db::DbState,
     error::{AppError, Error},
+    util,
 };
+
+use super::ApiResult;
 
 pub fn router() -> Router {
     Router::new()
         .route("/", get(index).post(setting))
+        .route("/scan", post(scan))
         .route("/stop", post(stop))
 }
 
@@ -63,14 +67,27 @@ async fn setting(
     Ok(Json(()))
 }
 
-async fn stop(
-    Extension(app_state): Extension<Arc<DbState>>,
+async fn scan(
     Extension(usb_state): Extension<Arc<Mutex<UsbState>>>,
-    Extension(set_usb_event): Extension<Arc<Sender<UsbType>>>,
+    body: String,
 ) -> impl IntoResponse {
+    if let Ok(post_data) = serde_json::from_str::<PostSetting>(&body) {
+        let usb_type = UsbType::from(post_data.usb_type);
+        let mut usb_state = usb_state.lock().await;
+        usb_state.usb_type = Some(usb_type);
+
+        let serials = util::find_usb_driver(usb_type);
+        let usb_devices = util::find_usb_number(usb_type, &serials);
+        usb_state.usb_devices = usb_devices;
+    }
+
+    Json(ApiResult::OK)
+}
+
+async fn stop(Extension(usb_state): Extension<Arc<Mutex<UsbState>>>) -> impl IntoResponse {
     let mut usb_state = usb_state.lock().await;
     usb_state.usb_type = None;
     usb_state.usb_devices.clear();
 
-    Json(())
+    Json(ApiResult::OK)
 }

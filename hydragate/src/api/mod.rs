@@ -23,6 +23,10 @@ pub(crate) struct ApiResult {
     pub result: bool,
 }
 
+impl ApiResult {
+    pub const OK: ApiResult = ApiResult { result: true };
+}
+
 #[derive(Debug, Serialize)]
 pub(crate) struct ApiId {
     pub id: i64,

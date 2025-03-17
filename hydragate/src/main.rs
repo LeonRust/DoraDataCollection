@@ -95,18 +95,18 @@ async fn main() -> anyhow::Result<()> {
     let keyboard_handel = tokio::spawn(keyboard::run(tcp_state, db_state, datasets_path));
 
     // usb devices
-    let usb_handle = tokio::spawn(async move {
-        loop {
-            let mut usb_state = usb_state.lock().await;
-            if let Some(usb_type) = usb_state.usb_type {
-                let serials = util::find_usb_driver(usb_type);
-                let usb_devices = util::find_usb_number(usb_type, &serials);
-                usb_state.usb_devices = usb_devices;
-            }
-            // println!("usb_devices: {:?}", usb_state.usb_devices);
-            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
-        }
-    });
+    // let usb_handle = tokio::spawn(async move {
+    //     loop {
+    //         let mut usb_state = usb_state.lock().await;
+    //         if let Some(usb_type) = usb_state.usb_type {
+    //             let serials = util::find_usb_driver(usb_type);
+    //             let usb_devices = util::find_usb_number(usb_type, &serials);
+    //             usb_state.usb_devices = usb_devices;
+    //         }
+    //         // println!("usb_devices: {:?}", usb_state.usb_devices);
+    //         tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+    //     }
+    // });
 
     tokio::select! {
         _ = tcp_handel => {
@@ -118,9 +118,9 @@ async fn main() -> anyhow::Result<()> {
         _ = keyboard_handel => {
             println!("Keyboard server stopped");
         }
-        _ = usb_handle => {
-            println!("USB server stopped");
-        }
+        // _ = usb_handle => {
+        //     println!("USB server stopped");
+        // }
     }
 
     Ok(())
