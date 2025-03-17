@@ -196,10 +196,8 @@ async fn stop() -> impl IntoResponse {
         "camera-right",
     ] {
         tasks.push(tokio::spawn(async move {
-            Command::new("sudo")
-                .args(["docker", "stop", name])
-                .output()
-                .ok();
+            let a = Command::new("sudo").args(["docker", "stop", name]).output();
+            dbg!(a);
         }));
     }
 
