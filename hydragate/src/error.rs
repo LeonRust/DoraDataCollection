@@ -1,8 +1,8 @@
 use axum::{
-    http::{header, HeaderValue, StatusCode},
+    http::{HeaderValue, StatusCode, header},
     response::IntoResponse,
 };
-use serde::{ser::SerializeStruct, Serialize};
+use serde::{Serialize, ser::SerializeStruct};
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -65,6 +65,8 @@ app_error! {
     (ROBOT_ID_EXIST, "A0200", "robot id exist", StatusCode::UNAUTHORIZED, "机器人id已经存在");
     /// 帐号登录失败
     (ACCOUNT_LOGIN_FAIL, "A0201", "login fail", StatusCode::UNAUTHORIZED, "帐号登录失败");
+    /// 启动系统失败
+    (RUN_SYSTEM_FAIL, "A0202", "run system fail", StatusCode::UNAUTHORIZED, "启动系统失败");
 
 
     /// 系统执行出错

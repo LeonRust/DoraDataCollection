@@ -70,11 +70,7 @@ async fn main() -> anyhow::Result<()> {
     let usb_state = Arc::new(Mutex::new(UsbState {
         usb_type: None,
         usb_devices: BTreeMap::new(),
-        u2d2_left: None,
-        u2d2_right: None,
-        orbbec_head: None,
-        orbbec_left: None,
-        orbbec_right: None,
+        datasets_path: datasets_path.clone(),
     }));
 
     // TCP

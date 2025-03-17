@@ -26,11 +26,7 @@ pub enum PathSync {
 pub struct UsbState {
     pub usb_type: Option<UsbType>, // 是否开始配置模式, 配置模式下可以配置U2D2和奥比中光相机
     pub usb_devices: BTreeMap<String, String>,
-    pub u2d2_left: Option<(String, String)>,
-    pub u2d2_right: Option<(String, String)>,
-    pub orbbec_head: Option<(String, String)>,
-    pub orbbec_left: Option<(String, String)>,
-    pub orbbec_right: Option<(String, String)>,
+    pub datasets_path: String,
 }
 
 // USB设备类型
@@ -104,7 +100,7 @@ impl From<i64> for OrbbecPlace {
 impl From<OrbbecPlace> for i64 {
     fn from(value: OrbbecPlace) -> Self {
         match value {
-            OrbbecPlace::Head => 0,
+            OrbbecPlace::Head => 1,
             OrbbecPlace::Left => 2,
             OrbbecPlace::Right => 3,
         }
