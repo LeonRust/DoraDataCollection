@@ -195,12 +195,12 @@ async fn stop() -> impl IntoResponse {
         "camera-left",
         "camera-right",
     ] {
-        tasks.push(
+        tasks.push(tokio::spawn(async move {
             Command::new("sudo")
                 .args(["docker", "stop", name])
                 .output()
-                .ok(),
-        );
+                .ok();
+        }));
     }
 
     futures::future::join_all(tasks).await;
