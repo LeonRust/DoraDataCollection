@@ -19,7 +19,7 @@ use crate::{
 pub fn router() -> Router {
     Router::new()
         .route("/", get(index).post(setting))
-        .route("/stop", post(setting))
+        .route("/stop", post(stop))
 }
 
 async fn index(
@@ -57,19 +57,43 @@ async fn setting(
             usb_state.setting = true;
             loop {
                 let serials = util::find_usb_driver(usb_type);
-                let usb_devices = util::find_usb_number(usb_type, serials);
+                let usb_devices = util::find_usb_number(usb_type, &serials);
                 println!("usb_devices: {:?}", usb_devices);
+                usb_state.serials = serials;
                 tokio::time::sleep(Duration::from_millis(1000)).await;
             }
         });
         tokio::select! {
-            _ = setting => println!("setting task exit"),
-            Ok(_) = usb_event.recv() => {
+            _ = setting => {},
+            Ok(data) = usb_event.recv() => {
+                println!("usb_event: {:?}", data);
                 let mut usb_state = usb_state_clone2.lock().await;
                 usb_state.setting = false;
                 usb_state.serials = vec![];
             }
         }
+
+        // let mut usb_state = usb_state_clone.lock().await;
+        // usb_state.setting = true;
+
+        // loop {
+        //     tokio::select! {
+        //         _ = async {
+        //             let serials = util::find_usb_driver(usb_type);
+        //             let usb_devices = util::find_usb_number(usb_type, &serials);
+        //             println!("usb_devices: {:?}", usb_devices);
+        //             usb_state.serials = serials;
+        //             tokio::time::sleep(Duration::from_millis(1000)).await;
+        //         } => {
+        //         },
+        //         Ok(data) = usb_event.recv() => {
+        //             println!("usb_event: {:?}", data);
+        //             let mut usb_state = usb_state_clone2.lock().await;
+        //             usb_state.setting = false;
+        //             usb_state.serials = vec![];
+        //         }
+        //     }
+        // }
     });
 
     Ok(Json(()))
