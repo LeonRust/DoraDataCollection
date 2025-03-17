@@ -2,7 +2,6 @@ use std::{process::Command, sync::Arc};
 
 use axum::{Extension, Json, Router, response::IntoResponse, routing::post};
 use common::state::UsbType;
-use futures::task;
 
 use crate::{
     Result,
@@ -187,17 +186,23 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
 }
 
 async fn stop() -> impl IntoResponse {
-    let a = Command::new("sudo")
-        .args([
-            "docker",
-            "stop",
-            "lerobot-gen72",
-            "camera-head",
-            "camera-left",
-            "camera-right",
-        ])
-        .output();
-    dbg!(a);
+    let mut tasks = vec![];
+
+    for name in [
+        "lerobot-gen72",
+        "camera-head",
+        "camera-left",
+        "camera-right",
+    ] {
+        tasks.push(tokio::spawn(async move {
+            Command::new("sudo")
+                .args(["docker", "stop", name])
+                .output()
+                .ok();
+        }));
+    }
+
+    futures::future::join_all(tasks).await;
 
     Json(ApiResult::OK)
 }

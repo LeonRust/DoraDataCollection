@@ -8,7 +8,7 @@ use axum::{
 use chrono::Local;
 use common::state::{OrbbecPlace, U2d2Place, UsbState, UsbType};
 use serde::{Deserialize, Serialize};
-use tokio::sync::{Mutex, broadcast::Sender};
+use tokio::sync::Mutex;
 
 use crate::{
     Result,
