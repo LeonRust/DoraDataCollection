@@ -98,7 +98,7 @@ async fn setting(
     if let Some(orbbec_right) = post_data.orbbec_right {
         datas.push((
             i64::from(UsbType::Orbbec),
-            i64::from(OrbbecPlace::Left),
+            i64::from(OrbbecPlace::Right),
             orbbec_right,
         ));
     }
@@ -121,10 +121,6 @@ async fn setting(
             .rows_affected();
 
             if rows_affected == 0 {
-                println!(
-                    "INSERT INTO `{}` (device_type, device_place, device_name, device_serial, created_at) VALUES (?, ?, ?, ?, ?);",
-                    TABLE_SETTING
-                );
                 sqlx::query(format!("INSERT INTO `{}` (device_type, device_place, device_name, device_serial, created_at) VALUES (?, ?, ?, ?, ?);", TABLE_SETTING).as_str())
                 .bind(usb_type)
                 .bind(place)
