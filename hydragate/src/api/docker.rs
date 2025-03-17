@@ -187,21 +187,17 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
 }
 
 async fn stop() -> impl IntoResponse {
-    let mut tasks = vec![];
-
-    for name in [
-        "lerobot-gen72",
-        "camera-head",
-        "camera-left",
-        "camera-right",
-    ] {
-        tasks.push(tokio::spawn(async move {
-            let a = Command::new("sudo").args(["docker", "stop", name]).output();
-            dbg!(a);
-        }));
-    }
-
-    futures::future::join_all(tasks).await;
+    let a = Command::new("sudo")
+        .args([
+            "docker",
+            "stop",
+            "lerobot-gen72",
+            "camera-head",
+            "camera-left",
+            "camera-right",
+        ])
+        .output();
+    dbg!(a);
 
     Json(ApiResult::OK)
 }
