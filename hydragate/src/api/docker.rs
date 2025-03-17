@@ -10,7 +10,7 @@ pub fn router() -> Router {
 
 async fn create_container() -> Result<impl IntoResponse> {
     Command::new("sudo")
-        .args(["docker", "ps", "-a"])
+        .args(["docker", "run", "--rm", "hello-world"])
         .output()
         .ok()
         .map(|output| {
