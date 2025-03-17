@@ -22,7 +22,7 @@ pub enum PathSync {
 
 // 配置状态
 pub struct UsbState {
-    pub setting: bool, // 是否开始配置模式, 配置模式下可以配置U2D2和奥比中光相机
+    pub usb_type: Option<UsbType>, // 是否开始配置模式, 配置模式下可以配置U2D2和奥比中光相机
     pub serials: Vec<String>,
     pub u2d2_left: Option<(String, String)>,
     pub u2d2_right: Option<(String, String)>,

@@ -46,55 +46,8 @@ async fn setting(
 
     let usb_type = UsbType::from(post_data.usb_type);
 
-    // usb订阅
-    let mut usb_event = set_usb_event.subscribe();
-
-    let usb_state_clone = usb_state.clone();
-    let usb_state_clone2 = usb_state.clone();
-    tokio::spawn(async move {
-        // let setting = tokio::spawn(async move {
-        //     let mut usb_state = usb_state_clone.lock().await;
-        //     usb_state.setting = true;
-        //     loop {
-        //         let serials = util::find_usb_driver(usb_type);
-        //         let usb_devices = util::find_usb_number(usb_type, &serials);
-        //         println!("usb_devices: {:?}", usb_devices);
-        //         usb_state.serials = serials;
-        //         tokio::time::sleep(Duration::from_millis(1000)).await;
-        //     }
-        // });
-        // tokio::select! {
-        //     _ = setting => {},
-        //     Ok(data) = usb_event.recv() => {
-        //         println!("usb_event: {:?}", data);
-        //         let mut usb_state = usb_state_clone2.lock().await;
-        //         usb_state.setting = false;
-        //         usb_state.serials = vec![];
-        //     }
-        // }
-
-        let mut usb_state = usb_state_clone.lock().await;
-        usb_state.setting = true;
-        loop {
-            tokio::select! {
-                _ = async {
-                    let serials = util::find_usb_driver(usb_type);
-                    let usb_devices = util::find_usb_number(usb_type, &serials);
-                    println!("usb_devices: {:?}", usb_devices);
-                    usb_state.serials = serials;
-                    tokio::time::sleep(Duration::from_millis(1000)).await;
-                } => {
-                },
-                Ok(data) = usb_event.recv() => {
-                    println!("usb_event: {:?}", data);
-                    let mut usb_state = usb_state_clone2.lock().await;
-                    usb_state.setting = false;
-                    usb_state.serials = vec![];
-                    break;
-                }
-            }
-        }
-    });
+    let mut usb_state = usb_state.lock().await;
+    usb_state.usb_type = Some(usb_type);
 
     Ok(Json(()))
 }

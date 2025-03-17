@@ -67,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
         path: String::new(),
     }));
     let usb_state = Arc::new(Mutex::new(UsbState {
-        setting: false,
+        usb_type: None,
         serials: vec![],
         u2d2_left: None,
         u2d2_right: None,
@@ -89,13 +89,27 @@ async fn main() -> anyhow::Result<()> {
         http_addr,
         db_state.clone(),
         tcp_state.clone(),
-        usb_state,
+        usb_state.clone(),
         datasets_path.clone(),
         set_usb_tx,
     ));
 
     // Keyboard
     let keyboard_handel = tokio::spawn(keyboard::run(tcp_state, db_state, datasets_path));
+
+    // usb devices
+    let usb_handle = tokio::spawn(async move {
+        loop {
+            let mut usb_state = usb_state.lock().await;
+            if let Some(usb_type) = usb_state.usb_type {
+                let serials = util::find_usb_driver(usb_type);
+                let usb_devices = util::find_usb_number(usb_type, &serials);
+                println!("usb_devices: {:?}", usb_devices);
+                usb_state.serials = serials;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+        }
+    });
 
     tokio::select! {
         _ = tcp_handel => {
@@ -106,6 +120,9 @@ async fn main() -> anyhow::Result<()> {
         }
         _ = keyboard_handel => {
             println!("Keyboard server stopped");
+        }
+        _ = usb_handle => {
+            println!("USB server stopped");
         }
     }
 
