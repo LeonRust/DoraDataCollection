@@ -1,6 +1,10 @@
 use std::{process::Command, sync::Arc};
 
-use axum::{Extension, Json, Router, response::IntoResponse, routing::post};
+use axum::{
+    Extension, Json, Router,
+    response::IntoResponse,
+    routing::{get, post},
+};
 use common::state::UsbType;
 
 use crate::{
@@ -17,7 +21,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/run", post(run))
         .route("/stop", post(stop))
-        .route("/status", post(status))
+        .route("/status", get(status))
 }
 
 async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoResponse> {
