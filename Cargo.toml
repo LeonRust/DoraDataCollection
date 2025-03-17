@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["arm", "camera", "common", "daemon"]
+members = ["arm", "camera", "common", "daemon", "hydragate"]
 
 [workspace.dependencies]
 anyhow = "1.0"
