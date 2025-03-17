@@ -68,29 +68,37 @@ async fn setting(
     let mut datas = vec![];
 
     if let Some(u2d2_left) = post_data.u2d2_left {
-        datas.push((UsbType::U2D2 as i64, U2d2Place::Left as i64, u2d2_left));
+        datas.push((
+            i64::from(UsbType::U2D2),
+            i64::from(U2d2Place::Left),
+            u2d2_left,
+        ));
     }
     if let Some(u2d2_right) = post_data.u2d2_right {
-        datas.push((UsbType::U2D2 as i64, U2d2Place::Right as i64, u2d2_right));
+        datas.push((
+            i64::from(UsbType::U2D2),
+            i64::from(U2d2Place::Right),
+            u2d2_right,
+        ));
     }
     if let Some(orbbec_head) = post_data.orbbec_head {
         datas.push((
-            UsbType::Orbbec as i64,
-            OrbbecPlace::Head as i64,
+            i64::from(UsbType::Orbbec),
+            i64::from(OrbbecPlace::Head),
             orbbec_head,
         ));
     }
     if let Some(orbbec_left) = post_data.orbbec_left {
         datas.push((
-            UsbType::Orbbec as i64,
-            OrbbecPlace::Left as i64,
+            i64::from(UsbType::Orbbec),
+            i64::from(OrbbecPlace::Left),
             orbbec_left,
         ));
     }
     if let Some(orbbec_right) = post_data.orbbec_right {
         datas.push((
-            UsbType::Orbbec as i64,
-            OrbbecPlace::Left as i64,
+            i64::from(UsbType::Orbbec),
+            i64::from(OrbbecPlace::Left),
             orbbec_right,
         ));
     }
@@ -113,6 +121,10 @@ async fn setting(
             .rows_affected();
 
             if rows_affected == 0 {
+                println!(
+                    "INSERT INTO `{}` (device_type, device_place, device_name, device_serial, created_at) VALUES (?, ?, ?, ?, ?);",
+                    TABLE_SETTING
+                );
                 sqlx::query(format!("INSERT INTO `{}` (device_type, device_place, device_name, device_serial, created_at) VALUES (?, ?, ?, ?, ?);", TABLE_SETTING).as_str())
                 .bind(usb_type)
                 .bind(place)
