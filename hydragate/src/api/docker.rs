@@ -132,7 +132,7 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
 
     // 启动 head
     for (index, &(name, camera)) in [orbbec_head, orbbec_left, orbbec_right].iter().enumerate() {
-        Command::new("sudo")
+        let a = Command::new("sudo")
             .args([
                 "docker",
                 "run",
@@ -167,8 +167,8 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
                 format!("{}:/datasets", db_state.datasets_path).as_str(),
                 "camera",
             ])
-            .output()
-            .ok();
+            .output();
+        dbg!(a);
     }
 
     Ok(Json(ApiResult::OK))
