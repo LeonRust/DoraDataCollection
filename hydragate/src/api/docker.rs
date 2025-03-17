@@ -17,6 +17,7 @@ pub fn router() -> Router {
     Router::new()
         .route("/run", post(run))
         .route("/stop", post(stop))
+        .route("/status", post(status))
 }
 
 async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoResponse> {
@@ -201,4 +202,22 @@ async fn stop() -> impl IntoResponse {
     });
 
     Json(ApiResult::OK)
+}
+
+async fn status() -> Result<impl IntoResponse> {
+    if let Ok(output) = Command::new("sudo").args(["docker", "ps", "-a"]).output() {
+        if !output.stdout.is_empty() {
+            let data = String::from_utf8_lossy(&output.stdout);
+
+            if data.contains("lerobot-gen72")
+                && data.contains("camera-head")
+                && data.contains("camera-left")
+                && data.contains("camera-right")
+            {
+                return Ok(Json(ApiResult::OK));
+            }
+        }
+    }
+
+    Err(Error::App(AppError::RUN_SYSTEM_FAIL))
 }

@@ -31,16 +31,27 @@
           </n-gi>
         </n-grid>
         <n-card :bordered="false">
-
-          <n-space>
-            <n-button v-if="!hasCollectTask" type="success" @click="settingTask">
-              设置采集任务
-            </n-button>
-            <template v-else>
-              <n-button type="warning" @click="stopTask">
-                结束采集任务
+          <n-space vertical>
+            <n-space>
+              <n-button v-if="!hasCollectTask" type="warning" @click="settingTask">
+                开启服务
               </n-button>
-            </template>
+              <template v-else>
+                <n-button type="error" @click="stopTask">
+                  关闭服务
+                </n-button>
+              </template>
+            </n-space>
+            <n-space>
+              <n-button v-if="!hasCollectTask" type="info" secondary @click="settingTask">
+                设置采集任务
+              </n-button>
+              <template v-else>
+                <n-button type="warning" secondary @click="stopTask">
+                  结束采集任务
+                </n-button>
+              </template>
+            </n-space>
           </n-space>
         </n-card>
       </n-card>
