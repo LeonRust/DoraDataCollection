@@ -96,7 +96,7 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
     // };
 
     // 启动lerobot-gen72
-    Command::new("sudo")
+    let a = Command::new("sudo")
         .args([
             "docker",
             "run",
@@ -127,8 +127,8 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
             format!("{}:/lerobot-gen72/.cache", db_state.cache_path).as_str(),
             "lerobot-gen72",
         ])
-        .output()
-        .ok();
+        .output();
+    dbg!(a);
 
     Ok(Json(ApiResult::OK))
 }
