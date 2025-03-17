@@ -1,61 +1,63 @@
 <template>
   <div>
-    <div class="n-layout-page-header">
-      <n-card :bordered="false" title="工作台">
-        <n-grid cols="2 s:1 m:1 l:2 xl:2 2xl:2" responsive="screen">
-          <n-gi>
-            <div class="flex items-center">
-              <div>
-                <n-avatar circle :size="64" :src="schoolboy" />
+    <n-spin :show="showSpin">
+      <div class="n-layout-page-header">
+        <n-card :bordered="false" title="工作台">
+          <n-grid cols="2 s:1 m:1 l:2 xl:2 2xl:2" responsive="screen">
+            <n-gi>
+              <div class="flex items-center">
+                <div>
+                  <n-avatar circle :size="64" :src="schoolboy" />
+                </div>
+                <div>
+                  <p class="px-4 text-xl">欢迎登录数据采集系统</p>
+                </div>
               </div>
-              <div>
-                <p class="px-4 text-xl">欢迎登录数据采集系统</p>
+            </n-gi>
+            <n-gi>
+              <div class="flex justify-end w-full">
+                <div class="flex flex-1 flex-col justify-center text-right">
+                  <span class="text-secondary">当前项目</span>
+                  <span class="text-2xl">{{ isRun ? '进行中' : '无' }} {{ taskName }}</span>
+                </div>
+                <!-- <div class="flex flex-1 flex-col justify-center text-right">
+                  <span class="text-secondary"></span>
+                  <span class="text-2xl"></span>
+                </div> -->
+                <!-- <div class="flex flex-1 flex-col justify-center text-right">
+                  <span class="text-secondary">消息</span>
+                  <span class="text-2xl">35</span>
+                </div> -->
               </div>
-            </div>
-          </n-gi>
-          <n-gi>
-            <div class="flex justify-end w-full">
-              <div class="flex flex-1 flex-col justify-center text-right">
-                <span class="text-secondary">当前项目</span>
-                <span class="text-2xl">{{ isRun ? '进行中' : '无' }} {{ taskName }}</span>
-              </div>
-              <!-- <div class="flex flex-1 flex-col justify-center text-right">
-                <span class="text-secondary"></span>
-                <span class="text-2xl"></span>
-              </div> -->
-              <!-- <div class="flex flex-1 flex-col justify-center text-right">
-                <span class="text-secondary">消息</span>
-                <span class="text-2xl">35</span>
-              </div> -->
-            </div>
-          </n-gi>
-        </n-grid>
-        <n-card :bordered="false">
-          <n-space vertical>
-            <n-space>
-              <n-button v-if="!hasCollectTask" type="warning" @click="settingTask">
-                开启服务
-              </n-button>
-              <template v-else>
-                <n-button type="error" @click="stopTask">
-                  关闭服务
+            </n-gi>
+          </n-grid>
+          <n-card :bordered="false">
+            <n-space vertical>
+              <n-space>
+                <n-button v-if="!isDockerRun" type="warning" @click="runService">
+                  开启服务
                 </n-button>
-              </template>
-            </n-space>
-            <n-space>
-              <n-button v-if="!hasCollectTask" type="info" secondary @click="settingTask">
-                设置采集任务
-              </n-button>
-              <template v-else>
-                <n-button type="warning" secondary @click="stopTask">
-                  结束采集任务
+                <template v-else>
+                  <n-button type="error" @click="stopService">
+                    关闭服务
+                  </n-button>
+                </template>
+              </n-space>
+              <n-space>
+                <n-button v-if="!hasCollectTask" type="info" secondary @click="settingTask">
+                  设置采集任务
                 </n-button>
-              </template>
+                <template v-else>
+                  <n-button type="warning" secondary @click="stopTask">
+                    结束采集任务
+                  </n-button>
+                </template>
+              </n-space>
             </n-space>
-          </n-space>
+          </n-card>
         </n-card>
-      </n-card>
-    </div>
+      </div>
+    </n-spin>
 
     <n-drawer v-model:show="form.activeDrawer" width="50%" :close-on-esc="false" :mask-closable="false">
       <n-drawer-content title="设置任务">
@@ -109,7 +111,7 @@
 </template>
 
 <script lang="ts" setup>
-import { getCurrentTask, getRobotList, getSceneList, getTaskList, postStartTask, postStopTask, setEpisodeResult } from '@/api/dashboard/workplace';
+import { getCurrentTask, getRobotList, getSceneList, getTaskList, postStartTask, postStopTask, setEpisodeResult, getDockerStatus, startDocker, stopDocker } from '@/api/dashboard/workplace';
 import schoolboy from '@/assets/images/schoolboy.png';
 import { useMessage } from 'naive-ui';
 import { onMounted, onUnmounted, reactive, ref } from 'vue';
@@ -117,6 +119,8 @@ import { onMounted, onUnmounted, reactive, ref } from 'vue';
 // const userStore = useUserStore();
 const message = useMessage()
 
+const showSpin = ref(false); // 是否加载中
+const isDockerRun = ref(false); // 服务是否启用
 const isRun = ref(false); // 采集数据是否在进行中
 const taskName = ref('');
 const showModal = ref(false); // 是否显示弹窗
@@ -230,7 +234,22 @@ const submitForm = (e: MouseEvent) => {
     }
   })
 }
-const startTask = async () => {}
+// 开启服务
+const runService = async () => {
+  showSpin.value = true;
+  startDocker().then(() => {
+    isDockerRun.value = true;
+    showSpin.value = false;
+  })
+}
+// 关闭服务
+const stopService = async () => {
+  showSpin.value = true;
+  stopDocker().then(() => {
+    isDockerRun.value = false;
+    showSpin.value = false;
+  })
+}
 
 const stopTask = async () => {
   postStopTask().then(() => {
@@ -247,6 +266,12 @@ const setFail = () => {
 
 onMounted(() => {
   timekeeping()
+
+  getDockerStatus().then(() => {
+    isDockerRun.value = true;
+  }).catch(() => {
+    isDockerRun.value = false;
+  })
 });
 
 onUnmounted(() => {

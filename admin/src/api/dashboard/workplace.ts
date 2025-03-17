@@ -1,5 +1,27 @@
 import { http } from '@/utils/http/axios';
 
+// 获取当前服务是否开启
+export function getDockerStatus() {
+  return http.request({
+    url: '/docker/status',
+    method: 'get',
+  });
+}
+// 开启服务
+export function startDocker() {
+  return http.request({
+    url: '/docker/run',
+    method: 'post',
+  });
+}
+// 关闭服务
+export function stopDocker() {
+  return http.request({
+    url: '/docker/stop',
+    method: 'post',
+  });
+}
+
 // 获取当前任务
 export function getCurrentTask() {
   return http.request({
