@@ -6,21 +6,20 @@ use std::{
 use common::{config, state::UsbType};
 
 pub fn find_usb_driver(usb_type: UsbType) -> Vec<String> {
-    let (vendor_product, key_word) = match usb_type {
+    let (_, key_word) = match usb_type {
         UsbType::U2D2 => config::USB_U2D2,
         UsbType::Orbbec => config::USB_ORBBEC,
     };
 
-    Command::new("lsusb")
-        .arg("-d")
-        .arg(vendor_product)
+    Command::new("ls")
+        .arg("/dev")
         .output()
         .ok()
         .map(|output| {
             let data = String::from_utf8_lossy(&output.stdout);
             data.trim()
                 .split("\n")
-                .filter(|&s| s.starts_with(key_word))
+                .filter(|s| s.starts_with(key_word))
                 .map(|s| s.to_string())
                 .collect::<Vec<String>>()
         })
