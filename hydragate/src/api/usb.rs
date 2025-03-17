@@ -56,16 +56,9 @@ async fn stop(
     Extension(app_state): Extension<Arc<DbState>>,
     Extension(usb_state): Extension<Arc<Mutex<UsbState>>>,
     Extension(set_usb_event): Extension<Arc<Sender<UsbType>>>,
-    body: String,
-) -> Result<impl IntoResponse> {
-    let Ok(post_data) = serde_json::from_str::<PostSetting>(&body) else {
-        return Err(Error::App(AppError::JSON_PARSE_FAILED));
-    };
+) -> impl IntoResponse {
+    let mut usb_state = usb_state.lock().await;
+    usb_state.usb_type = None;
 
-    let usb_type = UsbType::from(post_data.usb_type);
-
-    // usb订阅
-    set_usb_event.send(usb_type).ok();
-
-    Ok(Json(()))
+    Json(())
 }
