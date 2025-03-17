@@ -25,3 +25,4 @@ tower-http = { version = "0.6.2", features = ["full"] }
 mime_guess = "2.0.5"
 thiserror = "2.0.12"
 bcrypt = "0.17.0"
+futures = "0.3.31"

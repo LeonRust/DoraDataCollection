@@ -2,6 +2,7 @@ use std::{process::Command, sync::Arc};
 
 use axum::{Extension, Json, Router, response::IntoResponse, routing::post};
 use common::state::UsbType;
+use futures::task;
 
 use crate::{
     Result,
@@ -14,7 +15,9 @@ use crate::{
 use super::ApiResult;
 
 pub fn router() -> Router {
-    Router::new().route("/run", post(run))
+    Router::new()
+        .route("/run", post(run))
+        .route("/stop", post(stop))
 }
 
 async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoResponse> {
@@ -45,11 +48,11 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
                 match setting.device_place {
                     1 => {
                         // 左侧
-                        u2d2_left = Some((setting.device_serial.as_str(), value.as_str()));
+                        u2d2_left = Some((setting.device_serial.to_string(), value.to_string()));
                     }
                     2 => {
                         // 右侧
-                        u2d2_right = Some((setting.device_serial.as_str(), value.as_str()));
+                        u2d2_right = Some((setting.device_serial.to_string(), value.to_string()));
                     }
                     _ => {}
                 }
@@ -62,15 +65,15 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
                 match setting.device_place {
                     1 => {
                         // 头部
-                        orbbec_head = Some((setting.device_serial.as_str(), value.as_str()));
+                        orbbec_head = Some((setting.device_serial.to_string(), value.to_string()));
                     }
                     2 => {
                         // 左侧
-                        orbbec_left = Some((setting.device_serial.as_str(), value.as_str()));
+                        orbbec_left = Some((setting.device_serial.to_string(), value.to_string()));
                     }
                     3 => {
                         // 右侧
-                        orbbec_right = Some((setting.device_serial.as_str(), value.as_str()));
+                        orbbec_right = Some((setting.device_serial.to_string(), value.to_string()));
                     }
                     _ => {}
                 }
@@ -95,81 +98,112 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
         return Err(Error::App(AppError::RUN_SYSTEM_FAIL));
     };
 
+    let mut tasks = vec![];
     // 启动lerobot-gen72
-    Command::new("sudo")
-        .args([
-            "docker",
-            "run",
-            "--rm",
-            "-d",
-            "--privileged",
-            "--name",
-            "lerobot-gen72",
-            "--network",
-            "host",
-            "--device",
-            format!("/dev/{}:/dev/ttyUSB0", u2d2_left.1).as_str(),
-            "--device",
-            format!("/dev/{}:/dev/ttyUSB1", u2d2_right.1).as_str(),
-            "--cap-add",
-            "SYS_PTRACE",
-            "-e",
-            "RIGHT_ARM_IP=192.168.1.19",
-            "-e",
-            "LEFT_ARM_IP=192.168.1.20",
-            "-e",
-            "RIGHT_ARM_PORT=/dev/ttyUSB0",
-            "-e",
-            "LEFT_ARM_PORT=/dev/ttyUSB1",
-            "-e",
-            "DLL_PATH=lerobot/common/robot_devices/robots/libs",
-            "-v",
-            format!("{}:/lerobot-gen72/.cache", db_state.cache_path).as_str(),
-            "lerobot-gen72",
-        ])
-        .output()
-        .ok();
-
-    // 启动 head
-    for (index, &(name, camera)) in [orbbec_head, orbbec_left, orbbec_right].iter().enumerate() {
-        let a = Command::new("sudo")
+    let cache_path = db_state.cache_path.clone();
+    tasks.push(tokio::spawn(async move {
+        Command::new("sudo")
             .args([
                 "docker",
                 "run",
                 "--rm",
                 "-d",
+                "--privileged",
                 "--name",
-                format!(
-                    "camera-{}-{}",
-                    if index == 0 {
-                        "head"
-                    } else if index == 1 {
-                        "left"
-                    } else {
-                        "right"
-                    },
-                    name
-                )
-                .as_str(),
+                "lerobot-gen72",
                 "--network",
                 "host",
                 "--device",
-                format!("/dev/{}:/dev/video0", camera).as_str(),
+                format!("/dev/{}:/dev/ttyUSB0", u2d2_left.1).as_str(),
+                "--device",
+                format!("/dev/{}:/dev/ttyUSB1", u2d2_right.1).as_str(),
+                "--cap-add",
+                "SYS_PTRACE",
                 "-e",
-                "DAEMON_IP=127.0.0.1",
+                "RIGHT_ARM_IP=192.168.1.19",
                 "-e",
-                "DAEMON_TCP_PORT=1234",
+                "LEFT_ARM_IP=192.168.1.20",
                 "-e",
-                "CAMERA_ID=0",
+                "RIGHT_ARM_PORT=/dev/ttyUSB0",
                 "-e",
-                format!("CAMERA_NUMBER={}", index + 1).as_str(),
+                "LEFT_ARM_PORT=/dev/ttyUSB1",
+                "-e",
+                "DLL_PATH=lerobot/common/robot_devices/robots/libs",
                 "-v",
-                format!("{}:/datasets", db_state.datasets_path).as_str(),
-                "camera",
+                format!("{}:/lerobot-gen72/.cache", cache_path).as_str(),
+                "lerobot-gen72",
             ])
-            .output();
-        dbg!(a);
+            .output()
+            .ok();
+    }));
+
+    // 启动 head
+    for (index, (_name, camera)) in [orbbec_head, orbbec_left, orbbec_right].iter().enumerate() {
+        let datasets_path = db_state.datasets_path.clone();
+        let camera = camera.clone();
+        tasks.push(tokio::spawn(async move {
+            Command::new("sudo")
+                .args([
+                    "docker",
+                    "run",
+                    "--rm",
+                    "-d",
+                    "--name",
+                    format!(
+                        "camera-{}",
+                        if index == 0 {
+                            "head"
+                        } else if index == 1 {
+                            "left"
+                        } else {
+                            "right"
+                        }
+                    )
+                    .as_str(),
+                    "--network",
+                    "host",
+                    "--device",
+                    format!("/dev/{}:/dev/video0", camera).as_str(),
+                    "-e",
+                    "DAEMON_IP=127.0.0.1",
+                    "-e",
+                    "DAEMON_TCP_PORT=1234",
+                    "-e",
+                    "CAMERA_ID=0",
+                    "-e",
+                    format!("CAMERA_NUMBER={}", index + 1).as_str(),
+                    "-v",
+                    format!("{}:/datasets", datasets_path).as_str(),
+                    "camera",
+                ])
+                .output()
+                .ok();
+        }));
     }
 
+    futures::future::join_all(tasks).await;
+
     Ok(Json(ApiResult::OK))
+}
+
+async fn stop() -> impl IntoResponse {
+    let mut tasks = vec![];
+
+    for name in [
+        "lerobot-gen72",
+        "camera-head",
+        "camera-left",
+        "camera-right",
+    ] {
+        tasks.push(
+            Command::new("sudo")
+                .args(["docker", "stop", name])
+                .output()
+                .ok(),
+        );
+    }
+
+    futures::future::join_all(tasks).await;
+
+    Json(ApiResult::OK)
 }
