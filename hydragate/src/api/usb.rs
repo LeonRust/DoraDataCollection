@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use axum::{
     Extension, Json, Router,
@@ -6,14 +6,13 @@ use axum::{
     routing::{get, post},
 };
 use common::state::{UsbState, UsbType};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::sync::{Mutex, broadcast::Sender};
 
 use crate::{
     Result,
     db::DbState,
     error::{AppError, Error},
-    util,
 };
 
 pub fn router() -> Router {
@@ -22,12 +21,25 @@ pub fn router() -> Router {
         .route("/stop", post(stop))
 }
 
-async fn index(
-    Extension(app_state): Extension<Arc<DbState>>,
-    Extension(usb_state): Extension<Arc<Mutex<UsbState>>>,
-    Extension(set_usb_event): Extension<Arc<Sender<UsbType>>>,
-) -> impl IntoResponse {
-    Json(())
+async fn index(Extension(usb_state): Extension<Arc<Mutex<UsbState>>>) -> impl IntoResponse {
+    #[derive(Debug, Serialize)]
+    struct UsbDevice {
+        usb_serial: String,
+        ussb_num: String,
+    }
+
+    let usb_state = usb_state.lock().await;
+
+    let data = usb_state
+        .usb_devices
+        .iter()
+        .map(|(usb_serial, usb_num)| UsbDevice {
+            usb_serial: usb_serial.clone(),
+            ussb_num: usb_num.clone(),
+        })
+        .collect::<Vec<_>>();
+
+    Json(data)
 }
 
 #[derive(Debug, Deserialize)]
@@ -37,7 +49,6 @@ struct PostSetting {
 async fn setting(
     Extension(app_state): Extension<Arc<DbState>>,
     Extension(usb_state): Extension<Arc<Mutex<UsbState>>>,
-    Extension(set_usb_event): Extension<Arc<Sender<UsbType>>>,
     body: String,
 ) -> Result<impl IntoResponse> {
     let Ok(post_data) = serde_json::from_str::<PostSetting>(&body) else {

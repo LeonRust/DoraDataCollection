@@ -21,7 +21,6 @@ pub async fn run(
     tcp_state: Arc<Mutex<TcpState>>,
     usb_state: Arc<Mutex<UsbState>>,
     datasets_path: String,
-    set_usb_event: Sender<UsbType>,
 ) -> anyhow::Result<()> {
     let app = Router::new()
         .nest_service(&format!("/{}", datasets_path), ServeDir::new(datasets_path))
@@ -29,7 +28,6 @@ pub async fn run(
         .layer(Extension(db_state))
         .layer(Extension(tcp_state))
         .layer(Extension(usb_state))
-        .layer(Extension(Arc::new(set_usb_event)))
         .fallback(static_handler);
 
     let listener = TcpListener::bind(&addr).await?;

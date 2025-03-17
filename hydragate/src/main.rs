@@ -9,10 +9,10 @@ use std::{
 
 use common::{
     config,
-    state::{BizType, TcpState, UsbState, UsbType},
+    state::{BizType, TcpState, UsbState},
 };
 use db::DbState;
-use tokio::sync::{Mutex, broadcast};
+use tokio::sync::Mutex;
 
 mod api;
 mod asset;
@@ -77,9 +77,6 @@ async fn main() -> anyhow::Result<()> {
         orbbec_right: None,
     }));
 
-    // event
-    let (set_usb_tx, _) = broadcast::channel::<UsbType>(32);
-
     // TCP
     let tcp_addr = format!(":::{}", daemon_tcp_port);
     let tcp_handel = tokio::spawn(tcp::run(tcp_addr, clock_interval, tcp_state.clone()));
@@ -92,7 +89,6 @@ async fn main() -> anyhow::Result<()> {
         tcp_state.clone(),
         usb_state.clone(),
         datasets_path.clone(),
-        set_usb_tx,
     ));
 
     // Keyboard
@@ -107,7 +103,7 @@ async fn main() -> anyhow::Result<()> {
                 let usb_devices = util::find_usb_number(usb_type, &serials);
                 usb_state.usb_devices = usb_devices;
             }
-            println!("usb_devices: {:?}", usb_state.usb_devices);
+            // println!("usb_devices: {:?}", usb_state.usb_devices);
             tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
         }
     });
