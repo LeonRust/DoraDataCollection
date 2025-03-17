@@ -14,3 +14,7 @@ pub const ARM_DIRECTION: &str = "ARM_DIRECTION"; // 机械臂方向 left / right
 
 pub const CAMERA_ID: &str = "CAMERA_ID"; // 摄像头id OpenCV使用
 pub const CAMERA_NUMBER: &str = "CAMERA_NUMBER"; // 摄像头编号 保存目录使用
+
+// usb设备检测
+pub const USB_U2D2: (&str, &str) = ("0403:6014", "ttyUSB"); // u2d2
+pub const USB_ORBBEC: (&str, &str) = ("2bc5:0800", "video"); // 奥比中光
