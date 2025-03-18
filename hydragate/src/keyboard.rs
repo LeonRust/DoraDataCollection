@@ -1,8 +1,13 @@
+use chrono::Local;
 use std::{
     path::PathBuf,
     sync::{Arc, atomic::Ordering},
 };
-use tokio::sync::{Mutex, mpsc};
+use tokio::{
+    fs::File,
+    io::AsyncWriteExt,
+    sync::{Mutex, mpsc},
+};
 
 use common::state::{BizType, TcpState};
 use device_query::{DeviceQuery, DeviceState, Keycode};
@@ -82,6 +87,15 @@ pub async fn run(
                         let id = db_state.data_id.load(Ordering::Relaxed);
                         if id > 0 {
                             Episode::set_result(&db_state.database, ResultEnum::Success, id).await;
+                            if let Ok(mut file) =
+                                File::create(format!("{}/result.txt", mut_tcp_state.path)).await
+                            {
+                                file.write_all(
+                                    format!("{} 1", Local::now().timestamp_millis()).as_bytes(),
+                                )
+                                .await
+                                .ok();
+                            }
                         }
 
                         mut_tcp_state.biz_type = BizType::None;
@@ -113,6 +127,15 @@ pub async fn run(
                         let id = db_state.data_id.load(Ordering::Relaxed);
                         if id > 0 {
                             Episode::set_result(&db_state.database, ResultEnum::Fail, id).await;
+                            if let Ok(mut file) =
+                                File::create(format!("{}/result.txt", mut_tcp_state.path)).await
+                            {
+                                file.write_all(
+                                    format!("{} 0", Local::now().timestamp_millis()).as_bytes(),
+                                )
+                                .await
+                                .ok();
+                            }
                         }
 
                         mut_tcp_state.biz_type = BizType::None;
