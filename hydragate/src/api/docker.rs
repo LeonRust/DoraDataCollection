@@ -177,7 +177,7 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
                     "-e",
                     format!("CAMERA_NUMBER={}", index + 1).as_str(),
                     "-v",
-                    format!("{}:/datasets", datasets_path).as_str(),
+                    format!("./{}:/datasets", datasets_path).as_str(),
                     "camera",
                 ])
                 .output()
