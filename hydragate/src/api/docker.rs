@@ -134,7 +134,7 @@ async fn run(Extension(db_state): Extension<Arc<DbState>>) -> Result<impl IntoRe
                 "-e",
                 "DLL_PATH=lerobot/common/robot_devices/robots/libs",
                 "-v",
-                format!("{}:/lerobot-gen72/.cache", cache_path).as_str(),
+                format!("./{}:/lerobot-gen72/.cache", cache_path).as_str(),
                 "lerobot-gen72",
             ])
             .output()
