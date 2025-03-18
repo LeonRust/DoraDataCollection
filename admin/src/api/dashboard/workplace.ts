@@ -100,3 +100,27 @@ export function postStopTask() {
     method: 'post'
   });
 }
+
+// 刷新设备
+export function postRefreshDevice(data) {
+  return http.request({
+    url: '/usb/scan',
+    method: 'post',
+    data
+  });
+}
+// 获取设备列表
+export function getDeviceList() {
+  return http.request({
+    url: '/usb',
+    method: 'get'
+  });
+}
+// 保存设备列表
+export function postSaveDeviceList(data) {
+  return http.request({
+    url: '/usb',
+    method: 'post',
+    data
+  });
+}

@@ -87,6 +87,16 @@ const routes: Array<RouteRecordRaw> = [
         },
         component: () => import('@/views/dashboard/workplace/task.vue'),
       },
+      {
+        path: 'setting',
+        name: 'setting',
+        meta: {
+          title: '设备初始化',
+          keepAlive: true,
+          // permissions: ['dashboard_workplace'],
+        },
+        component: () => import('@/views/dashboard/workplace/init.vue'),
+      },
     ],
   },
 ];
