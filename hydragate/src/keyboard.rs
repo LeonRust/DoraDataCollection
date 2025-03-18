@@ -1,8 +1,8 @@
 use std::{
     path::PathBuf,
-    sync::{atomic::Ordering, Arc},
+    sync::{Arc, atomic::Ordering},
 };
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{Mutex, mpsc};
 
 use common::state::{BizType, TcpState};
 use device_query::{DeviceQuery, DeviceState, Keycode};
@@ -49,7 +49,7 @@ pub async fn run(
 
         match key {
             Keycode::Key1 | Keycode::Numpad1 => {
-                eprintln!("Start/Success pressed");
+                // eprintln!("Start/Success pressed");
                 match mut_tcp_state.biz_type {
                     BizType::None => {
                         if robot_id > 0 && scene_id > 0 && task_id > 0 {
@@ -77,7 +77,7 @@ pub async fn run(
                     BizType::Stop => {
                         // Save to db, success
 
-                        eprintln!("Episode Sucess");
+                        // eprintln!("Episode Sucess");
 
                         let id = db_state.data_id.load(Ordering::Relaxed);
                         if id > 0 {
@@ -90,7 +90,7 @@ pub async fn run(
                 }
             }
             Keycode::Key0 | Keycode::Numpad0 => {
-                eprintln!("Stop/Fail pressed");
+                // eprintln!("Stop/Fail pressed");
                 match mut_tcp_state.biz_type {
                     BizType::None => {}
                     BizType::Start => {
@@ -108,7 +108,7 @@ pub async fn run(
                     BizType::Stop => {
                         // Save to db, fail
 
-                        eprintln!("Episode Fail");
+                        // eprintln!("Episode Fail");
 
                         let id = db_state.data_id.load(Ordering::Relaxed);
                         if id > 0 {

@@ -243,6 +243,9 @@ const runService = async () => {
   startDocker().then(() => {
     isDockerRun.value = true;
     showSpin.value = false;
+  }).catch((err) => {
+    showSpin.value = false;
+    // message.error('')
   })
 }
 // 关闭服务

@@ -1,6 +1,6 @@
 use std::{
     collections::BTreeMap,
-    env, fs,
+    env,
     sync::{
         Arc,
         atomic::{AtomicBool, AtomicI64, AtomicU32},
@@ -30,7 +30,12 @@ pub use error::Result;
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
 
-    // databases collect save path
+    // database collect save path
+    let database_path = env::var(config::DATABASE_PATH).expect("database floder created fail");
+    if !std::path::Path::new(&database_path).exists() {
+        panic!("database path not exists");
+    }
+    // datasets collect save path
     let datasets_path = env::var(config::DATASET_PATH).expect("datasets floder created fail");
     if !std::path::Path::new(&datasets_path).exists() {
         panic!("datasets path not exists");
@@ -59,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
         });
 
     // database
-    let database = db::db_connect().await?;
+    let database = db::db_connect(database_path).await?;
 
     // global data
     let db_state = Arc::new(DbState {

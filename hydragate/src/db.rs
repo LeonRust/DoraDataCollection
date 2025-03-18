@@ -18,19 +18,19 @@ pub struct DbState {
     pub show_result: AtomicBool, // 是否显示弹窗
 }
 
-pub async fn db_connect() -> anyhow::Result<SqlitePool> {
+pub async fn db_connect(database_path: String) -> anyhow::Result<SqlitePool> {
     let mut init_table = false;
-    let db_url = "sqlite://db/database.db";
+    let db_url = format!("sqlite://{}/database.db", database_path);
     // 是否存在数据库
-    if !Path::new("db/database.db").exists() {
-        Sqlite::create_database(db_url).await?;
+    if !Path::new(&format!("{}/database.db", database_path)).exists() {
+        Sqlite::create_database(&db_url).await?;
         init_table = true;
     }
 
     // 创建数据库连接
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(db_url)
+        .connect(&db_url)
         .await?;
 
     if init_table {

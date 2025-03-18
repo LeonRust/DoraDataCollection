@@ -1,1 +1,0 @@
-import{a0 as i,V as c,db as t,dc as m}from"./index.45014abe.js";function d(){const n=c(t,null);return i(()=>{if(n===null)return m;const{mergedThemeRef:{value:r},mergedThemeOverridesRef:{value:e}}=n,o=(r==null?void 0:r.common)||m;return e!=null&&e.common?Object.assign({},o,e.common):o})}export{d as u};
