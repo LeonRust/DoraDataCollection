@@ -1,20 +1,21 @@
-use std::sync::{atomic::Ordering, Arc};
+use std::sync::{Arc, atomic::Ordering};
 
 use axum::{
+    Extension, Json, Router,
     extract::Path,
     response::IntoResponse,
     routing::{get, patch, post},
-    Extension, Json, Router,
 };
+use chrono::Local;
 use common::state::{BizType, TcpState};
 use serde::Deserialize;
-use tokio::sync::Mutex;
+use tokio::{fs::File, io::AsyncWriteExt, sync::Mutex};
 
 use crate::{
+    Result,
     db::DbState,
     error::{AppError, Error},
     model::episode::{CreateEpisode, Episode, ResultEnum},
-    Result,
 };
 
 use super::{ApiId, ApiResult};
@@ -104,6 +105,18 @@ async fn set_result(
         .await;
 
         let mut mut_tcp_state = tcp_state.lock().await;
+        if let Ok(mut file) = File::create(format!("{}/result.txt", mut_tcp_state.path)).await {
+            file.write_all(
+                format!(
+                    "{} {}",
+                    Local::now().timestamp_millis(),
+                    if post_data.result { 1 } else { 0 }
+                )
+                .as_bytes(),
+            )
+            .await
+            .ok();
+        }
         mut_tcp_state.biz_type = BizType::None;
         app_state.show_result.store(false, Ordering::Release);
     }
