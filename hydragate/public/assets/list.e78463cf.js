@@ -1,1 +1,0 @@
-import{aF as e}from"./index.86ccf7fc.js";function a(t){return e.request({url:"/table/list",method:"get",params:t})}export{a as g};

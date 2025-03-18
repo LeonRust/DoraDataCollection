@@ -138,6 +138,19 @@ const submitForm = (e: MouseEvent) => {
   e.preventDefault();
   formRef.value?.validate((errors) => {
     if (!errors) {
+      if (form.u2d2_left === form.u2d2_right) {
+        message.error('左右摇操臂设备不能相同')
+        return
+      }
+      if ((form.orbbec_head === form.orbbec_left)
+        || (form.orbbec_head === form.orbbec_right)
+        || (form.orbbec_left === form.orbbec_right))
+      {
+        message.error('摄像头设备不能重复相同')
+        return
+      }
+
+
       form.loading = true
 
       postSaveDeviceList({
